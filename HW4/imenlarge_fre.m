@@ -1,0 +1,36 @@
+function img_enlarge = imenlarge_fre(img,n,filter)
+for i=1:n
+    %% zero interleaving
+    [r,c] = size(img);% get img's size
+    img2 = zeros(2*r,2*c);% create empty img2 which size is double to img
+    img2(1:2:2*r,1:2:2*c) = img;% every two position store img's data 
+    %% zero padding
+    [x,y] = size(filter);% get filter's size
+    x=fix(x/2);% x/2 round down to integer
+    y=fix(y/2);% y/2 round down to integer
+    [r2,c2] = size(img2);% get img2's size
+    filter2 = zeros(r2,c2);% create empty filter
+    filter2(r2/2-x:r2/2+x , c2/2-y:c2/2+y) = filter;% store filter in the middle
+    %% convolution F^-1(F(M)*F(S'))
+    imgf = fftshift(fft2(img2));
+    ff = fft2(fftshift(filter2));
+    img = uint8(abs(ifft2(times(imgf,ff))));
+    img_enlarge = img;% return img
+end
+%{
+A = img;
+%RATIO
+[r,c] = size(A);
+mnrow = r/2;
+mncol = c/2;
+
+%FFT ON 2D MATRIX
+FT = fftshift(fft2(A));
+%PADDING WITH ZEROS
+pad_rc = padarray(FT,[mncol mnrow],0);
+%INVERSE FOURIER TRANSFORM
+IFT = ifft2(ifftshift(pad_rc));
+
+Img = uint8(abs(IFT)*(numel(IFT)/numel(A)));
+figure,imshow(Img);
+%}
